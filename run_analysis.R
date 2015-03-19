@@ -6,13 +6,13 @@ rm(list = ls())
 # Loading dplyr
 library(dplyr)
 
-# Reads and process all files in directory matching the pattern
+# Reads and process files in directory for a given split (test or train)
 read.full.set <- function (directory, split.name, features.labels, activity.labels) {
     prefix <- paste(directory,"/",split.name,"/",sep="")
     suffix <- paste("_",split.name,".txt",sep="")
     # Feature file
     f <- tbl_df(read.table(paste(prefix,"X",suffix,sep=""),col.names=features.labels))  
-    f <- f %>% select(contains(".mean.."), contains(".std.."))
+    f <- f %>% select(matches("_(mean|std)(_|$)"))
     
     # Activity ID file
     a <- read.table(paste(prefix,"y",suffix,sep=""),col.names=c("Activity"))
@@ -23,7 +23,7 @@ read.full.set <- function (directory, split.name, features.labels, activity.labe
     s <- tbl_df(read.table(paste(prefix,"subject",suffix,sep=""),col.names=c("Subject")))  
     
     # Now merge all files as columns 
-    bind_cols(f,a,s)
+    bind_cols(s,a,f)
 }
 
 # Directory where files are located
@@ -32,6 +32,8 @@ directory <- "UCI HAR Dataset"
 activity.labels <- read.table(paste(directory,"activity_labels.txt",sep="/"),colClasses = "character")[,2]
 # Loading features labels
 features.labels <- read.table(paste(directory,"features.txt",sep="/"),colClasses = "character")[,2]
+features.labels <- gsub("-","_",features.labels)
+features.labels <- gsub("[\\(\\)]","",features.labels)
 
 # Reading test & train data
 test.data <- read.full.set(directory,"test",features.labels, activity.labels)
@@ -43,7 +45,8 @@ rm(test.data)
 rm(train.data)
 rm(activity.labels)
 # New data set with average of each variable for each activity and each subject
-tidy.data <- clean.data %>% group_by(subject) %>% summarise_each(funs(mean))
+tidy.data <- clean.data %>% group_by(Subject, Activity) %>% summarise_each(funs(mean))
 write.table(tidy.data,"tidy_data.txt",row.name=FALSE)
-
+# Additionally write column names for Codebook
+write.table(colnames(clean.data),"colnames.txt",quote=F,col.names=F,row.names=F)
 
