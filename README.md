@@ -25,9 +25,9 @@ The main program performs the following steps
 
 1. Loads activity names from `activity_labels.txt` and feature names from `features.txt`
 2. Features names get substitutions, to simplify data frame naming in R: 
-  * - is replaced with _
-  * () are removed
-3. `read.full.set` is called for test and train files
+  * `-` is replaced with `_`
+  * `()` are removed
+3. `read.full.set` function is called for test and train files
 4. Merges results from test and train files into a single `clean.data` dataset
 5. Creates a second, independent tidy data set with the average of each variable grouped by subject and activity
 
